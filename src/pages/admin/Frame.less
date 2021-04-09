@@ -1,0 +1,28 @@
+.ant-table {
+    .ant-table-row {
+        td {
+            img {
+                width: 80px;
+            }
+        }
+    }
+    // 图片那一列
+    .ant-table-thead {
+        >tr {
+            >th {
+                &:nth-child(3) {
+                    width: 100px;
+                }
+            }
+        }
+    }
+}
+
+//编辑
+.product-edit {
+    .ant-form {
+        .upload-img {
+            margin-bottom: 0;
+        }
+    }
+}

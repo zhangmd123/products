@@ -1,0 +1,28 @@
+.login-form {
+    width: 480px;
+    position: relative;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 5px;
+}
+
+.app {
+    background: linear-gradient(to bottom right, rgb(231, 123, 141) 30%, rgb(250, 250, 36) 50%,rgb(67, 67, 231) 100%);
+
+    .ant-form-item-control{
+        .ant-form-item-children{
+            position: relative;
+            display: block;
+            width: 100%;
+            .ant-btn-primary{
+               position: absolute;
+               left: 50%;
+               transform: translate(-50%,0);
+            }
+        }
+    }
+    .login{
+        margin-bottom: 0;
+    }
+}
