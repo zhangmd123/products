@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Form, Card, Input, Button, message, Icon, Upload, Radio, Select } from 'antd';
 import { createApi } from '../../../http/api';
-import { getOneById, modifyOne } from '../../../http/api'
+import { getOneById, modifyOne, _getCategory } from '../../../http/api'
 import { serverUrl } from '../../../utils/config'
 const FormItem = Form.Item;
 const { Option } = Select;
@@ -13,15 +13,18 @@ class Edit extends Component {
             products: {
                 coverImg: '',
                 onSale: true,
-                categoryID: ''
+                productCategory: '',
+                options: []
             },
             loading: false,
+            defaultSelectValue: ''
         }
     }
     handleSubmit = (e) => {
         e.preventDefault();
         const id = this.props.match.params.id;
         const { coverImg } = this.state.products;
+        console.log(this.props, 'this.props');
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log(values, '提交');
@@ -30,7 +33,7 @@ class Edit extends Component {
                     modifyOne(id, { ...values, coverImg }).then(res => {
                         console.log(res, '编辑');
                         message.info('修改成功');
-                        this.props.history.go(-1);
+                        this.props.history.push('/admin/products');
                     })
                         .catch(err => {
                             message.error('修改失败')
@@ -89,15 +92,15 @@ class Edit extends Component {
         this.setState({
             products: {
                 ...this.state.products,
-                categoryID: value
+                productCategory: value
             }
         })
     }
 
     render() {
         const { getFieldDecorator } = this.props.form;
-        const { name, price, coverImg, onSale } = this.state.products;
-        // const { imageUrl } = this.state;
+        const { name, price, coverImg, onSale, options } = this.state.products;
+        const { defaultSelectValue } = this.state;
         const id = this.props.match.params.id;
         const uploadButton = (
             <div>
@@ -168,7 +171,7 @@ class Edit extends Component {
 
                     {/* 选择分类 */}
                     <FormItem style={{ display: 'block', margin: '30px 0' }} label="商品分类">
-                        {getFieldDecorator('categoryID')
+                        {getFieldDecorator('productCategory', { initialValue: defaultSelectValue })
                             (<Select
                                 allowClear
                                 style={{ width: 200 }}
@@ -176,9 +179,13 @@ class Edit extends Component {
                                 placeholder="选择分类"
                                 onChange={this.onSelectChange}
                             >
-                                <Option value="101">水果</Option>
-                                <Option value="102">蔬菜</Option>
-                                <Option value="103">生活用品</Option>
+                                {
+                                    options ? options.map((item, index) => {
+                                        return (
+                                            <Option value={item._id} key={item._id}>{item.name}</Option>
+                                        )
+                                    }) : ''
+                                }
                             </Select>)}
                     </FormItem>
                     <FormItem style={{ display: 'block', margin: '30px 50px' }}>
@@ -195,10 +202,27 @@ class Edit extends Component {
                 console.log(res, 'getOneById');
                 //获取数据库中的数据并且赋值
                 this.setState({
-                    products: res
+                    products: res,
+                    defaultSelectValue: res.productCategory
                 })
             });
+            this.getCategory();
+        } else {
+            this.getCategory();
         }
     }
+    //获取分类options
+    getCategory = () => {
+        _getCategory().then(res => {
+            console.log(res, '分类');
+            this.setState({
+                products: {
+                    ...this.state.products,
+                    options: res.categories
+                }
+            })
+        })
+    }
+
 }
 export default Form.create({ name: 'productEdit' })(Edit);

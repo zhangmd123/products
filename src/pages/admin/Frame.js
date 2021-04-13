@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
+import React from 'react';
 import List from './products/List';
-import { Route, Switch, withRouter } from 'react-router-dom'
+import { Route, Switch } from 'react-router-dom'
 import Edit from './products/Edit';
 import Index from './dashboard';
+import Category from './category'
 import { Layout, Menu, Icon, Dropdown, Avatar, message } from 'antd';
 import { isLogined } from '../../utils/auth'
 import { Redirect } from 'react-router-dom/cjs/react-router-dom.min';
@@ -13,11 +14,13 @@ const { Header, Content, Sider } = Layout;
 function Frame(props) {
     console.log(isLogined());
     //处理导航菜单选中
+
     let path = [];
-    if (props.location.pathname === '/admin') {
-        path = ['1']
-    } else if (props.location.pathname === '/admin/products') {
-        path = ['2']
+    switch (props.location.pathname) {
+        case '/admin': path = ['1']; break;
+        case '/admin/products': path = ['2']; break;
+        case '/admin/category': path = ['3']; break;
+        default: path = []
     }
 
     //下拉菜单
@@ -60,15 +63,16 @@ function Frame(props) {
                             >
                                 <Menu.Item key="1" onClick={() => props.history.push('/admin')} ><Icon type="area-chart" />看板</Menu.Item>
                                 <Menu.Item key="2" onClick={() => props.history.push('/admin/products')} ><Icon type="shop" />商品管理</Menu.Item>
+                                <Menu.Item key="3" onClick={() => props.history.push('/admin/category')} ><Icon type="appstore" />分类管理</Menu.Item>
                             </Menu>
 
                         </Sider>
                         <Layout style={{ padding: '10px' }}>
                             {/* <Breadcrumb style={{ margin: '16px 0' }}>
-                        <Breadcrumb.Item>Home</Breadcrumb.Item>
-                        <Breadcrumb.Item>List</Breadcrumb.Item>
-                        <Breadcrumb.Item>App</Breadcrumb.Item>
-                    </Breadcrumb> */}
+                                <Breadcrumb.Item>Home</Breadcrumb.Item>
+                                <Breadcrumb.Item>List</Breadcrumb.Item>
+                                <Breadcrumb.Item>App</Breadcrumb.Item>
+                           </Breadcrumb> */}
                             <Content
                                 style={{
                                     background: '#fff',
@@ -80,6 +84,7 @@ function Frame(props) {
 
                                 <Switch>
                                     <Route path="/admin/products" exact component={List}></Route>
+                                    <Route path="/admin/category" exact component={Category}></Route>
                                     <Route path='/admin/products/edit/:id?' component={Edit}></Route>
                                     <Route path="/admin" component={Index}></Route>
                                 </Switch>

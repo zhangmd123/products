@@ -18,9 +18,10 @@ export const listApi = p => get('/api/v1/admin/products', p);
 export const createApi = p => post('/api/v1/admin/products', p);
 export const modifyOne = (id, p) => put(`/api/v1/admin/products/${id}`, p);  //修改
 export const delOne = (id) => del(`/api/v1/admin/products/${id}`);  //删除
+export const getOneById = id => get(`/api/v1/admin/products/${id}`);  //根据id获取获取数据
 
-/**
- * 根据id获取获取数据
- * @param {*} id
- */
-export const getOneById = id => get(`/api/v1/admin/products/${id}`);
+//商品分类
+export const _getCategory = p => get('/api/v1/admin/product_categories', p);
+export const _createCategory = p => post('/api/v1/admin/product_categories', p);
+export const _delCategory = (id) => del(`/api/v1/admin/product_categories/${id}`);  //删除
+export const _modifyCategory = (id, p) => put(`/api/v1/admin/product_categories/${id}`, p);  //修改

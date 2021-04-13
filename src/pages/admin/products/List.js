@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Button, Card, Table, Popconfirm, Tag, Input, Select, Checkbox, Form } from 'antd'
-import { listApi, delOne } from '../../../http/api'
+import { listApi, delOne, _getCategory } from '../../../http/api'
 import { serverUrl } from '../../../utils/config'
 const { Option } = Select;
-const options = [
+const proStatus = [
     { label: '在售', value: true },
     { label: '已下架', value: false },
 ];
@@ -17,9 +17,10 @@ class List extends Component {
                 total: 0,
                 pageSize: 3,
                 onChange: (current) => this.changePage(current),
-                current: 1
+                current: 1,
             },
-            filter: null  //筛选条件
+            filter: null,  //筛选条件
+            options: []    //获取所有的商品分类
         }
         this.columns = [
             {
@@ -46,17 +47,9 @@ class List extends Component {
             },
             {
                 title: '分类',
-                key: 'categoryID',
-                dataIndex: 'categoryID',
-                render: (txt, record) => {
-                    if (record.categoryID === '101') {
-                        return '水果'
-                    } else if (record.categoryID === '102') {
-                        return '蔬菜'
-                    } else if (record.categoryID === '103') {
-                        return '生活用品'
-                    }
-                }
+                key: 'productCategory',
+                dataIndex: 'productCategory',
+                render: (txt, record) => <span>{record.productCategory ? record.productCategory.name : '暂无分类'}</span>
             },
             {
                 title: "是否在售",
@@ -69,10 +62,7 @@ class List extends Component {
                     return (
                         <div>
                             <Button type="link" size="small" style={{ background: 'orange', margin: '0 10px', color: '#fff' }}
-                                onClick={() => {
-                                    // 跳转到edit页面，传递id作为参数
-                                    this.props.history.push(`/admin/products/edit/${record._id}`);
-                                }}
+                                onClick={this.editProduct.bind(this, record._id)}
                             >编辑</Button>
                             <Popconfirm title="确认删除此项？" onCancel={() => console.log('用户取消删除')} onConfirm={
                                 () => {
@@ -92,10 +82,16 @@ class List extends Component {
             },
         ];
     }
+    //点击编辑
+    editProduct = (id) => {
+        // 跳转到edit页面，传递id作为参数
+        this.props.history.push(`/admin/products/edit/${id}`);
+    }
+
     //点击下一页
     changePage = (current) => {
         const { filter } = this.state;
-        console.log(current, filter, '下一页');
+        // console.log(current, filter, '下一页');
         this.getlist({ page: current, per: 3, filter });
     }
     //点击筛选
@@ -120,11 +116,11 @@ class List extends Component {
     }
 
     render() {
-        const { dataSource, paginationProps } = this.state;
+        const { dataSource, paginationProps, options } = this.state;
         const { getFieldDecorator } = this.props.form;
         return (
             <Card title="商品列表" extra>
-                <Form onSubmit={this.filterData} layout="inline">
+                <Form onSubmit={this.filterData} layout="inline" className="form">
                     <div className="filter">
                         <Form.Item label="价格区间(元)：" className="price">
                             {getFieldDecorator('lowerPrice', {
@@ -144,18 +140,23 @@ class List extends Component {
                                     onChange={this.onSelectChange}
                                     mode="multiple"
                                 >
-                                    <Option value="101">水果</Option>
-                                    <Option value="102">蔬菜</Option>
-                                    <Option value="103">生活用品</Option>
+                                    {
+                                        options ? options.map((item, index) => {
+                                            return (
+                                                <Option value={item._id} key={item._id}>{item.name}</Option>
+                                            )
+                                        }) : ''
+                                    }
                                 </Select>
                             )}
                         </Form.Item>
+
                         <Form.Item label="商品状态：">
                             {getFieldDecorator('status', {
                                 initialValue: [true, false]
                             })(
                                 <Checkbox.Group
-                                    options={options}
+                                    options={proStatus}
                                 />
                             )}
                         </Form.Item>
@@ -171,14 +172,12 @@ class List extends Component {
                 <Table rowKey="_id" columns={this.columns} bordered dataSource={dataSource}
                     onChange={this.loadData} pagination={paginationProps}
                 ></Table>
-                <div>
-                    {this.dataSource}
-                </div>
             </Card>
         );
     }
     componentDidMount() {
         this.getlist({ page: 1, per: 3 });
+        this.getCategory();
     }
     getlist = (param) => {
         listApi(param).then(res => {
@@ -192,7 +191,17 @@ class List extends Component {
         })
             .catch(err => {
                 console.log(err);
+                this.props.history.push('/login');
             })
+    }
+    //获取分类options
+    getCategory = () => {
+        _getCategory().then(res => {
+            // console.log(res, '分类');
+            this.setState({
+                options: res.categories
+            })
+        })
     }
 }
 
