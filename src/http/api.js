@@ -25,3 +25,6 @@ export const _getCategory = p => get('/api/v1/admin/product_categories', p);
 export const _createCategory = p => post('/api/v1/admin/product_categories', p);
 export const _delCategory = (id) => del(`/api/v1/admin/product_categories/${id}`);  //删除
 export const _modifyCategory = (id, p) => put(`/api/v1/admin/product_categories/${id}`, p);  //修改
+
+//获取管理员信息
+export const _getManager = p => get('/api/v1/users/manager_info', p);

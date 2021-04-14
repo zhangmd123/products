@@ -33,7 +33,7 @@ class Edit extends Component {
                     modifyOne(id, { ...values, coverImg }).then(res => {
                         console.log(res, '编辑');
                         message.info('修改成功');
-                        this.props.history.push('/admin/products');
+                        this.props.history.go(-1);
                     })
                         .catch(err => {
                             message.error('修改失败')

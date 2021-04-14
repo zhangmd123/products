@@ -2,25 +2,27 @@ import React, { Component } from 'react';
 import { Button, Card, Table, Popconfirm, Tag, Input, Select, Checkbox, Form } from 'antd'
 import { listApi, delOne, _getCategory } from '../../../http/api'
 import { serverUrl } from '../../../utils/config'
+import Store from '../../../context';
 const { Option } = Select;
 const proStatus = [
     { label: '在售', value: true },
-    { label: '已下架', value: false },
+    { label: '已下架', value: false }
 ];
 
 class List extends Component {
-    constructor(props) {
+    static contextType = Store;
+
+    constructor(props, context) {
         super(props)
         this.state = {
             dataSource: [],
             paginationProps: { //设置分页属性
                 total: 0,
-                pageSize: 3,
+                pageSize: context.page || 3,
                 onChange: (current) => this.changePage(current),
-                current: 1,
             },
             filter: null,  //筛选条件
-            options: []    //获取所有的商品分类
+            options: [],   //获取所有的商品分类
         }
         this.columns = [
             {
@@ -64,16 +66,8 @@ class List extends Component {
                             <Button type="link" size="small" style={{ background: 'orange', margin: '0 10px', color: '#fff' }}
                                 onClick={this.editProduct.bind(this, record._id)}
                             >编辑</Button>
-                            <Popconfirm title="确认删除此项？" onCancel={() => console.log('用户取消删除')} onConfirm={
-                                () => {
-                                    console.log('用户确认删除');
-                                    //调接口
-                                    delOne(record._id).then((res) => {
-                                        console.log(res, '删除一条');
-                                        this.getlist();
-                                    });
-                                }
-                            }>
+                            <Popconfirm title="确认删除此项？" onCancel={() => console.log('用户取消删除')}
+                                onConfirm={this.delOneProduct.bind(this, record._id)}>
                                 <Button type="danger" size="small">删除</Button>
                             </Popconfirm>
                         </div>
@@ -82,6 +76,15 @@ class List extends Component {
             },
         ];
     }
+    //删除一条
+    delOneProduct = (id) => {
+        console.log('用户确认删除');
+        delOne(id).then((res) => {
+            console.log(res, '删除一条');
+            this.getlist();
+        });
+    }
+
     //点击编辑
     editProduct = (id) => {
         // 跳转到edit页面，传递id作为参数
@@ -92,25 +95,30 @@ class List extends Component {
     changePage = (current) => {
         const { filter } = this.state;
         // console.log(current, filter, '下一页');
-        this.getlist({ page: current, per: 3, filter });
+        this.context.onChangePageInfo({
+            current: current
+        })
+        this.getlist({ page: current, per: this.state.paginationProps.pageSize, filter });
     }
+
     //点击筛选
     filterData = e => {
         e.preventDefault();
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (!err) {
                 console.log(values);
-                this.setState({
+                this.setState(Object.assign(this.state, {
                     filter: values
-                })
+                }))
                 //发请求
-                this.getlist({ page: 1, per: 3, filter: values });
+                this.getlist({ page: 1, per: this.state.paginationProps.pageSize, filter: values });
                 //回到第一页
-                this.setState({
-                    paginationProps: {
-                        current: 1
-                    }
+                const pagination = Object.assign(this.state.paginationProps, {
+                    current: 1
                 })
+                this.setState(Object.assign(this.state, {
+                    paginationProps: pagination
+                }))
             }
         })
     }
@@ -170,37 +178,34 @@ class List extends Component {
                 </div>
 
                 <Table rowKey="_id" columns={this.columns} bordered dataSource={dataSource}
-                    onChange={this.loadData} pagination={paginationProps}
+                    onChange={this.loadData} pagination={Object.assign(paginationProps, { current: this.context.current })}
                 ></Table>
             </Card>
         );
     }
     componentDidMount() {
-        this.getlist({ page: 1, per: 3 });
+        this.getlist({ page: this.context.current, per: this.state.paginationProps.pageSize });
         this.getCategory();
     }
     getlist = (param) => {
         listApi(param).then(res => {
             console.log(res);
-            this.setState({
-                dataSource: res.products,
-                paginationProps: {
-                    total: res.totalCount
-                }
-            })
+            const state = this.state
+            state.dataSource = res.products
+            state.paginationProps.total = res.totalCount
+            this.setState(state)
         })
             .catch(err => {
                 console.log(err);
-                this.props.history.push('/login');
             })
     }
     //获取分类options
     getCategory = () => {
         _getCategory().then(res => {
             // console.log(res, '分类');
-            this.setState({
+            this.setState(Object.assign(this.state, {
                 options: res.categories
-            })
+            }))
         })
     }
 }

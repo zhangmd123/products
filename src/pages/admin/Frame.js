@@ -6,15 +6,16 @@ import Index from './dashboard';
 import Category from './category'
 import { Layout, Menu, Icon, Dropdown, Avatar, message } from 'antd';
 import { isLogined } from '../../utils/auth'
-import { Redirect } from 'react-router-dom/cjs/react-router-dom.min';
+import { Redirect, withRouter } from 'react-router-dom/cjs/react-router-dom.min';
 import { getToken, clearToken } from '../../utils/auth'
 import './Frame.less'
+import { _getManager } from '../../http/api';
 const { Header, Content, Sider } = Layout;
+
 
 function Frame(props) {
     console.log(isLogined());
     //处理导航菜单选中
-
     let path = [];
     switch (props.location.pathname) {
         case '/admin': path = ['1']; break;
@@ -22,6 +23,12 @@ function Frame(props) {
         case '/admin/category': path = ['3']; break;
         default: path = []
     }
+    
+    //获取超级管理员
+    _getManager().then(res => {
+    }).catch(err => {
+        props.history.push('/login');
+    })
 
     //下拉菜单
     const popMenu = (
@@ -98,4 +105,4 @@ function Frame(props) {
     );
 }
 
-export default Frame;
+export default withRouter(Frame);
